@@ -9,9 +9,6 @@ using Spookfiles.Testing.Testrunners;
 
 namespace Spookfiles.Testing.KvA.CLI
 {
-    /// <summary>
-    ///     https://spookfiles.be-mobile.biz/kva kva-test / kva-test2014
-    /// </summary>
     internal class Program
     {
         private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
