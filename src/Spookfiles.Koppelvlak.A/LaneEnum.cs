@@ -1,0 +1,42 @@
+﻿namespace Spookfiles.Koppelvlak.A
+{
+    public enum LaneEnum
+    {
+        allLanesCompleteCarriageway,
+        busLane,
+        busStop,
+        carPoolLane,
+        centralReservation,
+        crawlerLane,
+        emergencyLane,
+        escapeLane,
+        expressLane,
+        hardShoulder,
+        heavyVehicleLane,
+        lane1,
+        lane2,
+        lane3,
+        lane4,
+        lane5,
+        lane6,
+        lane7,
+        lane8,
+        lane9,
+        layBy,
+        leftHandTurningLane,
+        leftLane,
+        localTraffiLane,
+        middleLane,
+        opposingLanes,
+        overtakingLane,
+        rightHandTurningLane,
+        rightLane,
+        rushHourLane,
+        setDownArea,
+        slowVehicleLane,
+        throughTrafficLane,
+        tidalFlowLane,
+        turningLane,
+        verge
+    }
+}
