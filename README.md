@@ -5,7 +5,7 @@ KvTestingTools
 
 ##Spookfiles KvA:
 
-```
+```sh
 [wim@CN001 Release]$ mono Spookfiles.Testing.KvA.CLI.exe
 
   --Connectivity     (Default: False) Run the connectivity tests
@@ -33,7 +33,7 @@ KvTestingTools
 
 ##Spookfiles KvG:
 
-```
+```sh
 [wim@CN001 Release]$ mono Spookfiles.Testing.CLI.exe
 
   --Connectivity     (Default: False) Run the connectivity tests
