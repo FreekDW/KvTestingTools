@@ -24,7 +24,7 @@ namespace Spookfiles.Testing.KvA.CLI
         internal static void RunFunctionalityTests(Options options)
         {
             RunTests(options, "Functionality", Out.Info,
-                new HttpResponseValidTest {RelativeUrl = GetTrafficStateLatest()}, // traffic state / latest
+                new HttpResponseValidTest { RelativeUrl = GetTrafficStateLatest() }, // traffic state / latest
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetTrafficStateLatest(),
@@ -33,12 +33,12 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetTrafficStateLatest(),
-                    TypeToDeserialize = typeof (List<Trafficstate>),
+                    TypeToDeserialize = typeof(List<Trafficstate>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Trafficstate>) o)
+                        foreach (var i in (List<Trafficstate>)o)
                         {
-                            if (i.publication_time > DateTime.UtcNow)
+                            if (i.publication_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
                             if (i.speed >= 150 || i.speed < 0)
                                 return false;
@@ -46,26 +46,27 @@ namespace Spookfiles.Testing.KvA.CLI
                                 return false;
                             if (i.freeflow_speed > 130 || i.freeflow_speed < 0)
                                 return false;
+                            
                         }
                         return true;
                     }
                 },
 
-                new HttpResponseValidTest {RelativeUrl = GetTrafficStateHistoric()}, // traffic state historic
+                new HttpResponseValidTest { RelativeUrl = GetTrafficStateHistoric(options.SegmentCsv) }, // traffic state historic
                 new CheckCompletenessResponseTest
                 {
-                    RelativeUrl = GetTrafficStateHistoric(),
+                    RelativeUrl = GetTrafficStateHistoric(options.SegmentCsv),
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInTrafficState()
                 },
                 new SanityCheck()
                 {
-                    RelativeUrl = GetTrafficStateHistoric(),
-                    TypeToDeserialize = typeof (List<Trafficstate>),
+                    RelativeUrl = GetTrafficStateHistoric(options.SegmentCsv),
+                    TypeToDeserialize = typeof(List<Trafficstate>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Trafficstate>) o)
+                        foreach (var i in (List<Trafficstate>)o)
                         {
-                            if (i.publication_time > DateTime.UtcNow)
+                            if (i.publication_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
                             if (i.speed >= 150 || i.speed < 0)
                                 return false;
@@ -77,7 +78,7 @@ namespace Spookfiles.Testing.KvA.CLI
                         return true;
                     }
                 },
-                new HttpResponseValidTest {RelativeUrl = GetEventsLatest()}, // Events/latest
+                new HttpResponseValidTest { RelativeUrl = GetEventsLatest() }, // Events/latest
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetEventsLatest(),
@@ -86,19 +87,19 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetEventsLatest(),
-                    TypeToDeserialize = typeof (List<TrafficEvent>),
+                    TypeToDeserialize = typeof(List<TrafficEvent>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<TrafficEvent>) o)
+                        foreach (var i in (List<TrafficEvent>)o)
                         {
-                            if (i.start_time >= DateTime.UtcNow)
+                            if (i.start_time.Value.ToUniversalTime() >= DateTime.UtcNow)
                                 return false;
 
                             if (i.event_code.Any(eventCode => eventCode < 1 || eventCode > 255))
                                 return false;
 
-                            if (i.update_time < i.start_time)
-                                // note: if traffic events in the future are allowed, this should also be removed.
+                            if (i.start_time > i.expected_end_time)
+                                //    // note: if traffic events in the future are allowed, this should also be removed.
                                 return false;
 
                             if (i.expected_end_time < DateTime.UtcNow)
@@ -109,7 +110,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 },
 
                 // mandatory: start_time, end_time
-                new HttpResponseValidTest {RelativeUrl = GetEventsHistoric()},
+                new HttpResponseValidTest { RelativeUrl = GetEventsHistoric() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetEventsHistoric(),
@@ -118,19 +119,19 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetEventsHistoric(),
-                    TypeToDeserialize = typeof (List<TrafficEvent>),
+                    TypeToDeserialize = typeof(List<TrafficEvent>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<TrafficEvent>) o)
+                        foreach (var i in (List<TrafficEvent>)o)
                         {
-                            if (i.start_time >= DateTime.UtcNow)
+                            if (i.start_time.Value.ToUniversalTime() >= DateTime.UtcNow)
                                 return false;
 
                             if (i.event_code.Any(eventCode => eventCode < 1 || eventCode > 255))
                                 return false;
 
-                            if (i.update_time < i.start_time)
-                                // note: if traffic events in the future are allowed, this should also be removed.
+                            if (i.start_time > i.expected_end_time)
+                                //    // note: if traffic events in the future are allowed, this should also be removed.
                                 return false;
 
                             //if (i.expected_end_time < DateTime.UtcNow) -> should be ok for historic
@@ -140,7 +141,7 @@ namespace Spookfiles.Testing.KvA.CLI
                     }
                 },
 
-                new HttpResponseValidTest {RelativeUrl = GetWeatherStateLatest()},
+                new HttpResponseValidTest { RelativeUrl = GetWeatherStateLatest() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetWeatherStateLatest(),
@@ -149,12 +150,12 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetWeatherStateLatest(),
-                    TypeToDeserialize = typeof (List<Weatherstate>),
+                    TypeToDeserialize = typeof(List<Weatherstate>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Weatherstate>) o)
+                        foreach (var i in (List<Weatherstate>)o)
                         {
-                            if (i.measurement_time > DateTime.UtcNow)
+                            if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
 
                             if (i.segment_id.Count == 0)
@@ -165,7 +166,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 },
 
                 // mandatory: start_time, end_time
-                new HttpResponseValidTest {RelativeUrl = GetWeatherStateHistoric()},
+                new HttpResponseValidTest { RelativeUrl = GetWeatherStateHistoric() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetWeatherStateHistoric(),
@@ -174,12 +175,12 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetWeatherStateHistoric(),
-                    TypeToDeserialize = typeof (List<Weatherstate>),
+                    TypeToDeserialize = typeof(List<Weatherstate>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Weatherstate>) o)
+                        foreach (var i in (List<Weatherstate>)o)
                         {
-                            if (i.measurement_time > DateTime.UtcNow)
+                            if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
 
                             if (i.segment_id.Count == 0)
@@ -189,7 +190,7 @@ namespace Spookfiles.Testing.KvA.CLI
                     }
                 },
 
-                new HttpResponseValidTest {RelativeUrl = GetWeatherForecastLatest()},
+                new HttpResponseValidTest { RelativeUrl = GetWeatherForecastLatest() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetWeatherForecastLatest(),
@@ -198,26 +199,26 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetWeatherForecastLatest(),
-                    TypeToDeserialize = typeof (List<Weatherforecast>),
+                    TypeToDeserialize = typeof(List<Weatherforecast>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Weatherforecast>) o)
+                        foreach (var i in (List<Weatherforecast>)o)
                         {
-                            if (i.measurement_time > DateTime.UtcNow)
-                                return false;
+                            //if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
+                            //    return false;
 
                             if (i.segment_id.Count == 0)
                                 return false;
 
-                            if (i.measurement_time < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(15)))
-                                return false;
+                            //if (i.measurement_time.ToUniversalTime() < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(15)))
+                            //    return false;
                         }
                         return true;
                     }
                 },
 
                 // mandatory: start_time, end_time
-                new HttpResponseValidTest {RelativeUrl = GetWeatherForecastHistoric()},
+                new HttpResponseValidTest { RelativeUrl = GetWeatherForecastHistoric() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetWeatherForecastHistoric(),
@@ -226,25 +227,25 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetWeatherForecastHistoric(),
-                    TypeToDeserialize = typeof (List<Weatherforecast>),
+                    TypeToDeserialize = typeof(List<Weatherforecast>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Weatherforecast>) o)
+                        foreach (var i in (List<Weatherforecast>)o)
                         {
-                            if (i.measurement_time > DateTime.UtcNow)
-                                return false;
+                            //if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
+                            //    return false;
 
                             if (i.segment_id.Count == 0)
                                 return false;
 
-                            if (i.measurement_time < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(15)))
-                                return false;
+                            //if (i.measurement_time.ToUniversalTime() < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(15)))
+                            //    return false;
                         }
                         return true;
                     }
                 },
 
-                new HttpResponseValidTest {RelativeUrl = GetSegmentState()},
+                new HttpResponseValidTest { RelativeUrl = GetSegmentState() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetSegmentState(),
@@ -253,12 +254,12 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetSegmentState(),
-                    TypeToDeserialize = typeof (List<Segmentstate>),
+                    TypeToDeserialize = typeof(List<Segmentstate>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Segmentstate>) o)
+                        foreach (var i in (List<Segmentstate>)o)
                         {
-                            if (i.update_time > DateTime.UtcNow)
+                            if (i.update_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
 
                             // todo: add more sanity checks here.
@@ -269,7 +270,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 },
 
                 // mandatory: start_time, end_time
-                new HttpResponseValidTest {RelativeUrl = GetSegmentStateHistoric()},
+                new HttpResponseValidTest { RelativeUrl = GetSegmentStateHistoric() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetSegmentStateHistoric(),
@@ -278,12 +279,12 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetSegmentStateHistoric(),
-                    TypeToDeserialize = typeof (List<Segmentstate>),
+                    TypeToDeserialize = typeof(List<Segmentstate>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Segmentstate>) o)
+                        foreach (var i in (List<Segmentstate>)o)
                         {
-                            if (i.update_time > DateTime.UtcNow)
+                            if (i.update_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
 
                             // todo: add more sanity checks here.
@@ -293,7 +294,7 @@ namespace Spookfiles.Testing.KvA.CLI
                     }
                 },
 
-                new HttpResponseValidTest {RelativeUrl = GetRoadSegments()},
+                new HttpResponseValidTest { RelativeUrl = GetRoadSegments() },
                 new CheckCompletenessResponseTest
                 {
                     RelativeUrl = GetRoadSegments(),
@@ -302,14 +303,78 @@ namespace Spookfiles.Testing.KvA.CLI
                 new SanityCheck()
                 {
                     RelativeUrl = GetRoadSegments(),
-                    TypeToDeserialize = typeof (List<Roadsegments>),
+                    TypeToDeserialize = typeof(List<Roadsegments>),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        foreach (var i in (List<Roadsegments>) o)
+                        foreach (var i in (List<Roadsegments>)o)
                         {
                             if (i.max_speed > 130)
                                 return false;
                             if (i.length > 100)
+                                return false;
+
+                        }
+                        return true;
+                    }
+                },
+                new HttpResponseValidTest { RelativeUrl = GetVehicleStateLatest() },
+                new CheckCompletenessResponseTest
+                {
+                    RelativeUrl = GetVehicleStateLatest(),
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState()
+                },
+                new SanityCheck()
+                {
+                    RelativeUrl = GetVehicleStateLatest(),
+                    TypeToDeserialize = typeof(List<Vehiclestate>),
+                    CheckValidDataInsideFunctionHandler = o =>
+                    {
+                        foreach (var i in (List<Vehiclestate>)o)
+                        {
+                            if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
+                                return false;
+                            
+                        }
+                        return true;
+                    }
+                },
+                
+                new HttpResponseValidTest { RelativeUrl = GetVehicleStateHistoric() },
+                new CheckCompletenessResponseTest
+                {
+                    RelativeUrl = GetVehicleStateHistoric(),
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState()
+                },
+                new SanityCheck()
+                {
+                    RelativeUrl = GetVehicleStateHistoric(),
+                    TypeToDeserialize = typeof(List<Vehiclestate>),
+                    CheckValidDataInsideFunctionHandler = o =>
+                    {
+                        foreach (var i in (List<Vehiclestate>)o)
+                        {
+                            if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
+                                return false;
+
+                        }
+                        return true;
+                    }
+                },
+                new HttpResponseValidTest { RelativeUrl = GetWeatherForecastHistoric() },
+                new CheckCompletenessResponseTest
+                {
+                    RelativeUrl = GetWeatherForecastHistoric(),
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState()
+                },
+                new SanityCheck()
+                {
+                    RelativeUrl = GetVehicleStateHistoric(),
+                    TypeToDeserialize = typeof(List<Vehiclestate>),
+                    CheckValidDataInsideFunctionHandler = o =>
+                    {
+                        foreach (var i in (List<Vehiclestate>)o)
+                        {
+                            if (i.measurement_time.ToUniversalTime() > DateTime.UtcNow)
                                 return false;
 
                         }
@@ -331,6 +396,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 new CheckCertificateTest { RelativeUrl = GetEventsLatest() }, // 2    
                 new CallingWithInvalidCredentials
                 {
+
                     RelativeUrl = GetEventsLatest(),
                     UseCredentials = HttpTestBase.AuthenticationMode.UseInvalidCredentials
                 }, // 3
@@ -339,13 +405,18 @@ namespace Spookfiles.Testing.KvA.CLI
                     RelativeUrl = GetEventsLatest(),
                     UseCredentials = HttpTestBase.AuthenticationMode.UseNoCredentials
                 }, // 4
-                new CheckHttpAvailableTest { RelativeUrl = GetEventsLatest() } // 5
+                new CheckHttpAvailableTest { RelativeUrl = GetEventsLatest() },
+                new CallingWithInvalidCredentials
+                {
+                    RelativeUrl = GetVehicleStateLatest(),
+                    UseCredentials = HttpTestBase.AuthenticationMode.UseNoCredentials
+                }// 5
                 );
         }
 
         internal static void RunPerformanceTests(Options options)
         {
-            RunTests(options, "Performance", Out.Info,
+            RunTestsParallel(options, "Performance", Out.Info,
                 new KvAPerformanceTest
                 {
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInTrafficState(),
@@ -356,7 +427,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 new KvAPerformanceTest
                 {
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInTrafficState(),
-                    RelativeUrl = GetTrafficStateHistoric(),
+                    RelativeUrl = GetTrafficStateHistoric(options.SegmentCsv),
                     IntervalTime = Options.PerformanceTestInterval,
                     TestDuration = Options.PerformanceTestDuration
                 },
@@ -420,6 +491,20 @@ namespace Spookfiles.Testing.KvA.CLI
                 {
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInRoadSegments(),
                     RelativeUrl = GetRoadSegments(),
+                    IntervalTime = Options.PerformanceTestInterval,
+                    TestDuration = Options.PerformanceTestDuration
+                },
+                new KvAPerformanceTest
+                {
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState(),
+                    RelativeUrl = GetVehicleStateLatest(),
+                    IntervalTime = Options.PerformanceTestInterval,
+                    TestDuration = Options.PerformanceTestDuration
+                },
+                new KvAPerformanceTest
+                {
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState(),
+                    RelativeUrl = GetVehicleStateHistoric(),
                     IntervalTime = Options.PerformanceTestInterval,
                     TestDuration = Options.PerformanceTestDuration
                 }
@@ -428,7 +513,7 @@ namespace Spookfiles.Testing.KvA.CLI
 
         internal static void RunContinuityTests(Options options)
         {
-            RunTests(options, "Continuity", Out.Info,
+            RunTestsParallel(options, "Continuity", Out.Info,
                 new KvAPerformanceTest
                 {
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInTrafficState(),
@@ -439,7 +524,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 new KvAPerformanceTest
                 {
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInTrafficState(),
-                    RelativeUrl = GetTrafficStateHistoric(),
+                    RelativeUrl = GetTrafficStateHistoric(options.SegmentCsv),
                     IntervalTime = Options.ContinuityTestInterval,
                     TestDuration = Options.ContinuityTestDuration
                 },
@@ -503,6 +588,20 @@ namespace Spookfiles.Testing.KvA.CLI
                 {
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInRoadSegments(),
                     RelativeUrl = GetRoadSegments(),
+                    IntervalTime = Options.ContinuityTestInterval,
+                    TestDuration = Options.ContinuityTestDuration
+                },
+                new KvAPerformanceTest
+                {
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState(),
+                    RelativeUrl = GetVehicleStateLatest(),
+                    IntervalTime = Options.ContinuityTestInterval,
+                    TestDuration = Options.ContinuityTestDuration
+                },
+                new KvAPerformanceTest
+                {
+                    FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInVehicleState(),
+                    RelativeUrl = GetVehicleStateHistoric(),
                     IntervalTime = Options.ContinuityTestInterval,
                     TestDuration = Options.ContinuityTestDuration
                 }
@@ -515,8 +614,9 @@ namespace Spookfiles.Testing.KvA.CLI
         {
             return string.Format("start_time={0}&end_time={1}",
                 //DateTime.UtcNow.AddHours(-4).ToString("O"), 
-                "0001-01-01T01:00:00.0000000",
-                DateTime.UtcNow.ToString("O"));
+                //"0001-01-01T01:00:00.0000000",
+                DateTime.UtcNow.AddMinutes(-Options.HistoryStartBackInTime).ToString(Options.DateTimeFormat),
+                DateTime.UtcNow.AddMinutes(-Options.HistoryEndBackInTime).ToString(Options.DateTimeFormat));
         }
 
         private static string GetTrafficStateLatest()
@@ -524,10 +624,9 @@ namespace Spookfiles.Testing.KvA.CLI
             return "/trafficstate/latest";
         }
 
-        private static string GetTrafficStateHistoric()
+        private static string GetTrafficStateHistoric(string segmentsCsv)
         {
-            return string.Format("/trafficstate/historic?{0}", GetStartAndEndTime(), Options.SegmentCSV);
-            // &segment_id={1}
+            return string.Format("/trafficstate/historic?{0}&segment_id={1}", GetStartAndEndTime(), segmentsCsv ?? Options.DefaultSegmentCsv);
         }
 
         private static string GetWeatherStateLatest()
@@ -573,6 +672,16 @@ namespace Spookfiles.Testing.KvA.CLI
         private static string GetEventsHistoric()
         {
             return string.Format("/events/historic?{0}", GetStartAndEndTime());
+        }
+
+        private static string GetVehicleStateLatest()
+        {
+            return "/vehiclestate/latest";
+        }
+
+        private static string GetVehicleStateHistoric()
+        {
+            return string.Format("/vehiclestate/historic?{0}", GetStartAndEndTime());
         }
 
         #endregion

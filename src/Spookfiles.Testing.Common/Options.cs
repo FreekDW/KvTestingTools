@@ -10,7 +10,8 @@ namespace Spookfiles.Testing.Common
         public const string InvalidApiKey = "nowaythisisavalidkey";
         public const string InvalidUserName = "wronguser";
         public const string InvalidPassword = "wrongpass";
-        public const string SegmentCSV = "698058";
+        public const string DefaultSegmentCsv = "1662180";
+        public const string DateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fffZ";
 
 #if DEBUG
         /// <summary>
@@ -21,7 +22,7 @@ namespace Spookfiles.Testing.Common
         /// <summary>
         ///     Performance test interval in milliseconds
         /// </summary>
-        public const int PerformanceTestInterval = 2000;
+        public const int PerformanceTestInterval = 15000;
 #else
     /// <summary>
     /// Performance duration, in seconds
@@ -38,12 +39,12 @@ namespace Spookfiles.Testing.Common
         /// <summary>
         ///     Performance duration, in seconds
         /// </summary>
-        public const int ContinuityTestDuration = 20;
+        public const int ContinuityTestDuration = 600;
 
         /// <summary>
         ///     Performance test interval in milliseconds
         /// </summary>
-        public const int ContinuityTestInterval = 2000;
+        public const int ContinuityTestInterval = 5000;
 #else
     /// <summary>
     /// Performance duration, in seconds
@@ -53,6 +54,26 @@ namespace Spookfiles.Testing.Common
         /// Performance test interval in milliseconds
         /// </summary>
         public const int ContinuityTestInterval = 30 * 1000;
+#endif
+
+#if DEBUG
+        /// <summary>
+        /// History calls: Set number of minutes back in time for start datetime
+        /// </summary>
+        public const int HistoryStartBackInTime = 30;
+        /// <summary>
+        /// History calls: Set number of minutes back in time for end datetime
+        /// </summary>
+        public const int HistoryEndBackInTime = 15;
+#else
+        /// <summary>
+        /// History calls: Set number of minutes back in time for start datetime
+        /// </summary>
+        public const int HistoryStartBackInTime = 30;
+        /// <summary>
+        /// History calls: Set number of minutes back in time for end datetime
+        /// </summary>
+        public const int HistoryEndBackInTime = 15;
 #endif
 
         [Option("Connectivity", DefaultValue = false, HelpText = "Run the connectivity tests")]
@@ -90,6 +111,9 @@ namespace Spookfiles.Testing.Common
 
         [Option("Pass", HelpText = "The pass to use for basic Auth")]
         public string Pass { get; set; }
+
+        [Option("SegmentCsv", HelpText = "CommaSeperated list of segment ids to test")]
+        public string SegmentCsv { get; set; }
 
         public Dictionary<string, string> Parameters { get; set; }
     }

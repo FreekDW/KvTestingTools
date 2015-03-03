@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Spookfiles.Koppelvlak.G;
 using Spookfiles.Testing.Common;
 using Spookfiles.Testing.Testrunners;
@@ -20,28 +21,62 @@ namespace Spookfiles.Testing.CLI
                 new PingTest(),
                 new TcpConnectionTest(),
                 new HttpServiceOnlineTest(),
-                new HttpResponseValidTest {RelativeUrl = "/fcd"});
+                new HttpResponseValidTest { RelativeUrl = FcdRetrieveRequestWithTime() });
         }
 
         internal static void RunFunctionalityTests(Options options)
         {
             RunTests(options, "Functionality", Out.Info,
-                new HttpResponseValidTest {RelativeUrl = "/fcd?last_message_time=0"},
+                new HttpResponseValidTest { RelativeUrl = FcdRetrieveRequestWithTime() },
                 new CheckCompletenessResponseTest
                 {
-                    RelativeUrl = "/fcd?last_message_time=0",
+                    RelativeUrl = FcdRetrieveRequestWithTime(),
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInFCD()
                 },
                 new SanityCheck()
                 {
-                    RelativeUrl = "/fcd?last_message_time=0",
-                    TypeToDeserialize = typeof (FcdMessage),
+                    RelativeUrl = FcdRetrieveRequestWithTime(),
+                    TypeToDeserialize = typeof(FcdMessage),
                     CheckValidDataInsideFunctionHandler = o =>
                     {
-                        var fcd = (FcdMessage) o;
-                        if (fcd.fcd_records.Count == 0)
-                            return false;
-                        // todo : further specify checks
+                        var fcd = (FcdMessage)o;
+                        if (fcd.provider_id == null) return false;
+                        if (fcd.fcd_records.Count == 0) return false;
+                        foreach (var fcdrecord in fcd.fcd_records)
+                        {
+                            if (fcdrecord.user_id_anonymous == 0) return false;
+                            foreach (var trail in fcdrecord.trail)
+                            {
+                                if (trail.generation_time.ToUniversalTime() > DateTime.UtcNow)
+                                {
+                                    return false;
+                                }
+                                if (trail.speed < 0 || trail.speed > 150)
+                                {
+                                    return false;
+                                }
+                                if (trail.ref_position_lat < 51.482733 || trail.ref_position_lat > 51.555198)
+                                {
+                                    return false;
+                                }
+                                if (trail.ref_position_lon < 5.116459 || trail.ref_position_lon > 5.393983)
+                                {
+                                    return false;
+                                }
+                                if (trail.heading < 0 || trail.heading > 360)
+                                {
+                                    return false;
+                                }
+
+                                // Check Not implimented no valid time to countermeasure with
+                                //if (trail.generation_time.ToUniversalTime() < DateTime.UtcNow.AddMinutes(-2))
+                                //{
+                                //    return false;
+                                //}
+                            }
+                        }
+
+
                         return true;
                     }
                 }
@@ -53,22 +88,22 @@ namespace Spookfiles.Testing.CLI
             RunTests(options, "Security", Out.Info,
                 new CheckCompletenessResponseTest
                 {
-                    RelativeUrl = "/fcd?last_message_time=0",
+                    RelativeUrl = FcdRetrieveRequestWithTime(),
                     FieldsThatShouldBePresent = FieldTester.FieldsThatShouldBePresentInFCD()
                 },
                 // 1                 // note: this is the same test as runfunctionality - the last one.
-                new CheckCertificateTest {RelativeUrl = "/fcd"}, // 2    
+                new CheckCertificateTest { RelativeUrl = FcdRetrieveRequestWithTime() }, // 2    
                 new CallingWithInvalidCredentials
                 {
-                    RelativeUrl = "/fcd",
+                    RelativeUrl = FcdRetrieveRequestWithTime(),
                     UseCredentials = HttpTestBase.AuthenticationMode.UseInvalidCredentials
                 }, // 3
                 new CallingWithInvalidCredentials
                 {
-                    RelativeUrl = "/fcd",
+                    RelativeUrl = FcdRetrieveRequestWithTime(),
                     UseCredentials = HttpTestBase.AuthenticationMode.UseNoCredentials
                 }, // 4
-                new CheckHttpAvailableTest {RelativeUrl = "/fcd"} // 5
+                new CheckHttpAvailableTest { RelativeUrl = FcdRetrieveRequestWithTime() } // 5
                 );
         }
 
@@ -76,9 +111,9 @@ namespace Spookfiles.Testing.CLI
         {
             var test = new KvGPerformanceTest
             {
-                RelativeUrl = "/fcd",
+                RelativeUrl = FcdRetrieveRequestWithTime(),
                 IntervalTime = Options.PerformanceTestInterval,
-                TestDuration = Options.PerformanceTestDuration
+                TestDuration = Options.PerformanceTestDuration,
             };
             TestResultBase result1 = test.Test(options);
             result1.StepNr = 1;
@@ -93,7 +128,7 @@ namespace Spookfiles.Testing.CLI
                 {
                     SubTest = "Performance",
                     StepNr = 2,
-                    ShortDescription = "Update interval /fcd",
+                    ShortDescription = "Update interval " + FcdRetrieveRequest(),
                     Status = TestResult.OK
                 }.ToString());
             }
@@ -103,7 +138,7 @@ namespace Spookfiles.Testing.CLI
                 {
                     SubTest = "Performance",
                     StepNr = 2,
-                    ShortDescription = "Update interval /fcd",
+                    ShortDescription = "Update interval " + FcdRetrieveRequest(),
                     Status = TestResult.FAIL,
                     CauseOfFailure = "Generation time did not update properly."
                 }.ToString());
@@ -114,7 +149,7 @@ namespace Spookfiles.Testing.CLI
         {
             var test = new KvGPerformanceTest
             {
-                RelativeUrl = "/fcd",
+                RelativeUrl = FcdRetrieveRequest(),
                 IntervalTime = Options.PerformanceTestInterval,
                 TestDuration = Options.PerformanceTestDuration
             };
@@ -123,5 +158,21 @@ namespace Spookfiles.Testing.CLI
             result1.SubTest = "Continuity";
             Out.Info(result1.ToString());
         }
+
+
+        private static string FcdRetrieveRequest()
+        {
+            return "/fcd";
+        }
+
+        private static string FcdRetrieveRequestWithTime()
+        {
+            return "/fcd?last_message_time=0";
+        }
+
+
+
+
+
     }
 }

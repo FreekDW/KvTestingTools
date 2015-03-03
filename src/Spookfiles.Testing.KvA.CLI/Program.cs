@@ -16,14 +16,15 @@ namespace Spookfiles.Testing.KvA.CLI
         private static void Main(string[] args)
         {
 #if DEBUG
-            args = new[]
-            {
-                "--all",
-                "--url", "http://yourtesturl",
-                "--apikey", "MyFamousApiKey",
-                "--user", "TheOneAndOnlyKvAUser",
-                "--pass", "MyVeryHardToGuesspassword"
-            };
+            //args = new[]
+            //{
+            //    "--all",
+            //    "--url", "http://yourtesturl",
+            //    "--apikey", "MyFamousApiKey",
+            //    "--user", "TheOneAndOnlyKvAUser",
+            //    "--pass", "MyVeryHardToGuesspassword"
+            //};
+
 #endif
             var options = new Options();
             if (Parser.Default.ParseArguments(args, options))
@@ -58,7 +59,6 @@ namespace Spookfiles.Testing.KvA.CLI
                 HelpText txt = HelpText.AutoBuild(options);
                 Out.Info(txt.ToString());
             }
-            Console.ReadLine();
         }
     }
 }

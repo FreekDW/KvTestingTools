@@ -37,6 +37,7 @@ namespace Spookfiles.Testing.KvA.CLI
                 Status = TestResult.INCONCLUSIVE
             };
 
+
             DateTime current = DateTime.Now; // to check if we elapsed total seconds.
             var results = new List<Tuple<long, TestResult>>();
             //long lastMessageTime = 0;
@@ -51,33 +52,21 @@ namespace Spookfiles.Testing.KvA.CLI
                 TestResultBase res = test.Test(o);
                 results.Add(new Tuple<long, TestResult>(test.RequestDuration, res.Status));
 
-                if (test.ResponseData != null)
-                {
-                    // now store the last updated time from the previous
-                    string data = test.ResponseData;
-                    // deserialize
-                    //var fcdMsg = JsonConvert.DeserializeObject<FcdMessage>(data);
-
-                    //if (lastMessageTime == fcdMsg.message_time)
-                    //{
-                    //    // todo: check with wim vdb if we really need to check this??
-                    //    GenerationTimeValid = false;
-                    //}
-                    //else
-                    //{
-                    //    if (!GenerationTimeValid.HasValue)
-                    //        GenerationTimeValid = true;
-                    //}
-                    //lastMessageTime = fcdMsg.message_time;
-                }
+                //if (test.ResponseData != null)
+                //{
+                //    // now store the last updated time from the previous
+                //    string data = test.ResponseData;
+                //}
                 Thread.Sleep(IntervalTime);
                 if (DateTime.Now.Subtract(current).TotalSeconds >= TestDuration)
                     break;
             }
 
-            IEnumerable<Tuple<long, TestResult>> succesCount = results.Where(t => t.Item2 == TestResult.OK);
-            double percentageSuccess = succesCount.Count()/(double) results.Count;
-            double avgTime = results.Select(t => t.Item1).Average();
+            IEnumerable<Tuple<long, TestResult>> succesCount = results.Where(t => t.Item2 == TestResult.OK).ToList();
+
+            var totalResultCount = results.Count;
+            double percentageSuccess = totalResultCount == 0 ? 0 : succesCount.Count() / (double)totalResultCount;
+            double avgTime = succesCount.Any() ? succesCount.Select(t => t.Item1).Average() : -1;
 
             testResult.ExtraInformation = Math.Round(avgTime, 0) + " ms average time";
 
@@ -88,7 +77,7 @@ namespace Spookfiles.Testing.KvA.CLI
             else
             {
                 testResult.Status = TestResult.FAIL;
-                testResult.CauseOfFailure = "Percentage success: " + percentageSuccess;
+                testResult.CauseOfFailure = "Percentage success: " + Math.Round(percentageSuccess * 100)  + "%";
             }
 
             return testResult;

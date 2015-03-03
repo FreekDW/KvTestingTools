@@ -16,14 +16,14 @@ namespace Spookfiles.Testing.CLI
         private static void Main(string[] args)
         {
 #if DEBUG
-            args = new[]
-            {
-                "--all",
-                "--url", "http://yourtesturl",
-                "--apikey", "MyFamousApiKey",
-                "--user", "TheOneAndOnlyKvGUser",
-                "--pass", "MyVeryHardToGuesspassword"
-            };
+            //args = new[]
+            //{
+            //    "--all",
+            //    "--url", "http://yourtesturl",
+            //    "--apikey", "MyFamousApiKey",
+            //    "--user", "TheOneAndOnlyKvGUser",
+            //    "--pass", "MyVeryHardToGuesspassword"
+            //};
 #endif
             var options = new Options();
             if (Parser.Default.ParseArguments(args, options))
@@ -58,7 +58,6 @@ namespace Spookfiles.Testing.CLI
                 HelpText txt = HelpText.AutoBuild(options);
                 Out.Info(txt.ToString());
             }
-            Console.ReadLine();
         }
     }
 }
